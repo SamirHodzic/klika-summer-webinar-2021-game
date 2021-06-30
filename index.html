@@ -1,0 +1,214 @@
+<canvas id="game" width="500" height="500"></canvas>
+
+<script type="text/javascript">
+  window.onload = function () {
+    canvas = document.getElementById("game");
+    ctx = canvas.getContext("2d");
+
+    document.addEventListener("keydown", keyHanlder);
+    game();
+  };
+
+  player = {
+    x: 215,
+    y: 215,
+    w: 70,
+    h: 70,
+    coins: 0,
+  };
+
+  coin = {
+    x: 0,
+    y: 0,
+    w: 35,
+    h: 35,
+    active: false,
+  };
+
+  enemies = [];
+
+  function game() {
+    update();
+    draw();
+    requestAnimationFrame(game);
+  }
+
+  function draw() {
+    drawMain();
+    drawEnemies();
+    drawCoin();
+    drawPlayer();
+  }
+
+  function update() {
+    updateCoin();
+    updateEnemies();
+  }
+
+  function updateCoin() {
+    if (!coin.active) {
+      coin.x = 150 + Math.floor(Math.random() * 3) * 80;
+      coin.y = 150 + Math.floor(Math.random() * 3) * 80;
+
+      if (overlap(coin)) {
+        updateCoin();
+      }
+      coin.active = true;
+    }
+
+    if (overlap(coin)) {
+      player.coins++;
+      coin.active = false;
+    }
+  }
+
+  function updateEnemies() {
+    for (var i = 0; i < enemies.length; i++) {
+      if (enemies[i].dir === 0) {
+        enemies[i].x += enemies[i].speed;
+      } else {
+        enemies[i].y += enemies[i].speed;
+      }
+
+      if (overlap(enemies[i])) {
+        ctx.save();
+        ctx.translate(Math.random() * 10, Math.random() * 10);
+        player.coins = 0;
+      }
+
+      setTimeout(() => {
+        ctx.restore();
+      }, 500);
+
+      if (enemies[i].x > 500 || enemies[i].y > 500) {
+        enemies.splice(i, 1);
+      }
+    }
+
+    if (enemies.length < 2) {
+      const dir = Math.floor(Math.random() * 2);
+
+      if (dir === 0) {
+        x = -35;
+        y = 150 + Math.floor(Math.random() * 3) * 80;
+      } else {
+        y = -35;
+        x = 150 + Math.floor(Math.random() * 3) * 80;
+      }
+
+      enemies.push({
+        x: x,
+        y: y,
+        w: 35,
+        h: 35,
+        dir: dir,
+        speed: Math.floor(Math.random() * 5) + 2,
+      });
+    }
+  }
+
+  function overlap(object) {
+    return !(
+      player.x + player.w < object.x ||
+      object.x + object.w < player.x ||
+      player.y + player.h < object.y ||
+      object.y + object.h < player.y
+    );
+  }
+
+  function drawCoin() {
+    ctx.fillStyle = "gold";
+    ctx.fillRect(coin.x, coin.y, coin.w, coin.h);
+  }
+
+  function drawPlayer() {
+    ctx.fillStyle = "white";
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+  }
+
+  function drawEnemies() {
+    for (var i = 0; i < enemies.length; i++) {
+      ctx.fillStyle = "black";
+      ctx.fillRect(enemies[i].x, enemies[i].y, enemies[i].w, enemies[i].h);
+    }
+  }
+
+  function drawMain() {
+    ctx.fillStyle = "blueviolet";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(120, 120, 260, 260);
+
+    ctx.fillStyle = "blueviolet";
+    ctx.fillRect(130, 130, 240, 240);
+    
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = "white";
+    ctx.font = "150px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(player.coins, 250, 300);
+    ctx.globalAlpha = 1;
+  }
+
+  var interval;
+
+  function keyHanlder(evt) {
+    var pos;
+    if (interval) return;
+    switch (evt.keyCode) {
+      case 37:
+        pos = player.x - 80;
+
+        if (pos > 80) {
+          interval = setInterval(function () {
+            player.x -= 5;
+            if (player.x <= pos) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }, 8);
+        }
+        break;
+      case 39:
+        pos = player.x + 80;
+
+        if (pos < 300) {
+          interval = setInterval(function () {
+            player.x += 5;
+            if (player.x >= pos) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }, 8);
+        }
+        break;
+      case 38:
+        pos = player.y - 80;
+
+        if (pos > 80) {
+          interval = setInterval(function () {
+            player.y -= 5;
+            if (player.y <= pos) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }, 8);
+        }
+        break;
+      case 40:
+        pos = player.y + 80;
+
+        if (pos < 300) {
+          interval = setInterval(function () {
+            player.y += 5;
+            if (player.y >= pos) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }, 8);
+        }
+        break;
+    }
+  }
+</script>
